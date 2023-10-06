@@ -3,63 +3,57 @@ import { Button } from './Button/Button';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { fetchImages } from 'API/apiPixabay';
 import { Searchbar } from './Searchbar/Searchbar';
-import { Component } from 'react';
-export class App extends Component {
-  state = {
-    word: '',
-    hits: [],
-    page: 1,
-    showLoadMore: false,
-    isLoading: false,
-  };
-  async componentDidUpdate(prevProp, prevState) {
-    if (
-      prevState.word !== this.state.word ||
-      prevState.page !== this.state.page
-    ) {
+import { useEffect, useState } from 'react';
+export const App = () => {
+  const [word, setWord] = useState('');
+  const [hits, setHits] = useState([]);
+  const [page, setPage] = useState(1);
+  const [showLoadMore, setShowLoadMore] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setIsLoading(true);
+    const getImages = async () => {
       try {
-        this.setState({ isLoading: true });
         const {
           data: { hits, totalHits },
-        } = await fetchImages({ word: this.state.word, page: this.state.page });
+        } = await fetchImages({ word, page });
         if (hits.length === 0)
           return alert(`Nothing was found for your request ${this.state.word}`);
-        this.setState(prev => ({
-          hits: [...prev.hits, ...hits],
-          showLoadMore: this.state.page < Math.ceil(totalHits / 12),
-        }));
+        setHits(prev => [...prev, ...hits]);
+        setShowLoadMore(page < Math.ceil(totalHits / 12));
       } catch (error) {
         console.log(error.message);
       } finally {
-        this.setState({ isLoading: false });
+        setIsLoading(false);
       }
-    }
-  }
-  handleSubmit = word => {
-    this.setState({ word, page: 1, showLoadMore: false, hits: [] });
+    };
+    getImages();
+  }, [page, word]);
+
+  const handleSubmit = word => {
+    setWord(word);
+    setPage(1);
+    setShowLoadMore(false);
+    setHits([]);
   };
-  handleClick = () => {
-    this.setState(prev => ({
-      page: prev.page + 1,
-    }));
+  const handleClick = () => {
+    setPage(prev => prev + 1);
   };
-  render() {
-    return (
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr',
-          gridGap: '16px',
-          paddingBottom: '24px',
-        }}
-      >
-        <Searchbar handleSubmit={this.handleSubmit}></Searchbar>
-        {this.state.hits && <ImageGallery hits={this.state.hits} />}
-        {this.state.showLoadMore && (
-          <Button handleClick={this.handleClick}>Load More</Button>
-        )}
-        {this.state.isLoading && <Loader />}
-      </div>
-    );
-  }
-}
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        gridTemplateColumns: '1fr',
+        gridGap: '16px',
+        paddingBottom: '24px',
+      }}
+    >
+      <Searchbar handleSubmit={handleSubmit}></Searchbar>
+      {hits && <ImageGallery hits={hits} />}
+      {showLoadMore && <Button handleClick={handleClick}>Load More</Button>}
+      {isLoading && <Loader />}
+    </div>
+  );
+};

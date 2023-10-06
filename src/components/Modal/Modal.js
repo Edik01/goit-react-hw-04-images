@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { Image } from './Modal.styled';
 import Modal from 'react-modal';
 const customStyles = {
   content: {
@@ -13,22 +13,19 @@ const customStyles = {
   },
 };
 Modal.setAppElement('#root');
-export class ImageModal extends Component {
-  closeModal = () => {
-    this.props.onClose();
+export const ImageModal = ({ onClose, largeImageURL, tags, modalIsOpen }) => {
+  const closeModal = () => {
+    onClose();
   };
 
-  render() {
-    return (
-      <Modal
-        isOpen={this.props.modalIsOpen}
-        onRequestClose={this.closeModal}
-        style={customStyles}
-        contentLabel="image modal"
-      >
-        {' '}
-        <img src={this.props.largeImageURL} alt={this.props.tags} />
-      </Modal>
-    );
-  }
-}
+  return (
+    <Modal
+      isOpen={modalIsOpen}
+      onRequestClose={closeModal}
+      style={customStyles}
+      contentLabel="image modal"
+    >
+      <Image src={largeImageURL} alt={tags} />
+    </Modal>
+  );
+};
